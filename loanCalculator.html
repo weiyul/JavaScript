@@ -10,16 +10,29 @@
     <style>
         .output {font-weight: bold;}
         #payment {text-decoration: underline;} /*For element with id ="payment"*/
-        #graph {border: solid black 1px;}
+        #graph {border: solid gray 1px;}
             
         th, td {vertical-align: top;}
     </style>    
     </head>
     <body>
     <!-- This is an HTML table with <input> elements that allow the user to enter data and <span> elements in which the program can display its results. These elements have ids like "interest" and "years". These ids are used in the JavaScript code that follows the table. Note that some of the input elements define "onchange" or "onclice" event handlers. These specify strings of JavaScript code to be executed when the user enters data or clicks.-->
+        <!--
     <table>
         <tr><th>Enter Load Data:</th><td></td><th>Loan Balance, Cumulative Equity, and Interest Payments</th></tr>
         <tr><td>Amount of the loan ($):</td><td><input id="amount" onchange="Calculate();"</td><td rowspan=8><canvas id="graph" width="400" height="250"></canvas></td></tr>
+        <tr><td>Annual interest (%)</td><td><input id="apr" onchange="calculate();"></td></tr>
+        <tr><td>Repayment period (years)</td><td><input id="years" onchange="calculate();"></td></tr>
+        <tr><th>Approximate Payments:</th><td><button onclick="calculate();">Calculate</button></td></tr>
+        <tr><td>Monthly payment:</td><td>$<span class="output" id="payment"></span></td></tr>
+        <tr><td>Total payment:</td><td>$<span class="output" id="total"></span></td></tr>
+        <tr><td>Total interest:</td><td>$<span class="output" id="totalinterest"></span></td></tr>
+        
+    </table>-->
+        
+    <table>
+        <tr><th>Loan Balance, Cumulative Equity, and Interest Payments</th><th>Enter Load Data:</th></tr>
+        <tr><td rowspan=8><canvas id="graph" width="400" height="250"></canvas></td><td>Amount of the loan ($):</td><td><input id="amount" onchange="Calculate();"</td></tr>
         <tr><td>Annual interest (%)</td><td><input id="apr" onchange="calculate();"></td></tr>
         <tr><td>Repayment period (years)</td><td><input id="years" onchange="calculate();"></td></tr>
         <tr><th>Approximate Payments:</th><td><button onclick="calculate();">Calculate</button></td></tr>
@@ -120,7 +133,39 @@
         g.closePath(); // And back to start
         g.fillStyle= "#f88"; // light red
         g.fill(); //Fill the triangle
+        g.font ="bold 12px sans-serif"; //Define a font
+        g.fillText("Total Interest Payments", 20, 20); // Draw text in legend
         
+        // Cumulative equity is non-linear and tricker to chart
+        var equity = 0;
+        g.beginPath(); // Begin a new shape
+        g.moveTo(paymentToX(0), amountToY(0)); // starting at lower-left
+        for(var p=1; p<= payments; p++){
+            // For each payment, figure out how much is interest
+            var thisMonthsInterest = (principal-equity)*interest;
+            equity += (monthly -thisMonthsInterest); // The rest goes to equity
+            g.lineTo(paymentToX(p), amountToY(equity)); // Line to this point
+            
+        }
+        g.lineTo(paymentToX(payments), amountToY(0)); // Line back to X axis
+        g.closePath(); // And back to start point
+        g.fillStyle = "red"; // Now use green paint
+        g.fill(); // And fill area under curve
+        g.fillText("Total Equity", 20, 35); // Label in red
+        
+        // Loop again, as above, but chart loan balance as a thick black line
+        var bal = principal
+        g.beginPath();
+        g.moveTo(paymentToX(0), amountToY(bal));
+        for(var p= 1; p<=payments; p++){
+            var thisMonthsInterest= bal * interest;
+            bal -= (monthly-thisMonthsInterest); // The rest goes to equity
+            g.lineTo(paymentToX(p), amountToY(bal));//Draw line to this point
+        }
+        g.lineWidth =3; // Use thick line
+        g.stroke(); // Draw the balance curve
+        g.fillStyle ="black"; // Switch to black text
+        g.fillText("Loan Balance", 20, 50); // Legend entry
     }
         
     </script>
